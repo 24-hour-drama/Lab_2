@@ -6,7 +6,132 @@
         xmlns:local="clr-namespace:Forms1"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="900"
-        Background="WhiteSmoke" WindowStartupLocation="CenterScreen">
+        Background="WhiteSmoke" WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+
+        <!-- Стиль кнопок: скругление, тень, увеличение при наведении -->
+        <Style x:Key="AnimatedButton" TargetType="Button">
+            <Setter Property="Background" Value="#E6E6FA"/>
+            <Setter Property="BorderBrush" Value="#3333FF"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#3333FF" BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                To="1.05" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                To="1.05" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                To="1" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                To="1" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль элементов списка: подсветка и сдвиг при наведении -->
+        <Style x:Key="AnimatedItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="b" CornerRadius="6"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="2"
+                                Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <TranslateTransform X="0"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#F0F8FF"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="#3333FF"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.X"
+                                                To="5" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="b"
+                                                Storyboard.TargetProperty="RenderTransform.X"
+                                                To="0" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#E6E6FA"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="#3333FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль карточек-рамок: скругление и тень -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#3333FF" BlurRadius="10" ShadowDepth="2" Opacity="0.15"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -18,7 +143,9 @@
         </Grid.ColumnDefinitions>
 
         <!--Верхний заголовок -->
-        <Border Grid.Row="0" Grid.ColumnSpan="2" BorderBrush="#3333FF" BorderThickness="2" Padding="5" Margin="0,0,0,10" Background="#E6E6FA">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" BorderBrush="#3333FF" BorderThickness="2"
+                Padding="5" Margin="0,0,0,10" Background="#E6E6FA"
+                Style="{StaticResource Card}">
             <TextBlock Text="Ночник" HorizontalAlignment="Center" FontSize="22" FontWeight="Bold" Foreground="Black"/>
         </Border>
 
@@ -29,14 +156,17 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2" Padding="5" Margin="0,0,0,5" Background="#E6E6FA">
+            <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2"
+                    Padding="5" Margin="0,0,0,5" Background="#E6E6FA"
+                    Style="{StaticResource Card}">
                 <TextBlock Text="Операции" HorizontalAlignment="Center" FontSize="18"/>
             </Border>
 
-            <!-- Листбокс для операций (как вы и просили) -->
-            <ListBox x:Name="OperationsListBox" Grid.Row="1" 
-                     BorderBrush="#3333FF" BorderThickness="2" 
+            <!-- Листбокс для операций -->
+            <ListBox x:Name="OperationsListBox" Grid.Row="1"
+                     BorderBrush="#3333FF" BorderThickness="2"
                      Background="#F0F8FF"
+                     ItemContainerStyle="{StaticResource AnimatedItem}"
                      SelectionChanged="OperationsListBox_SelectionChanged"/>
         </Grid>
 
@@ -58,17 +188,21 @@
             </Grid.RowDefinitions>
 
             <!-- Карточка операции -->
-            <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2" Padding="5" Margin="0,0,0,5" Background="#E6E6FA">
+            <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2"
+                    Padding="5" Margin="0,0,0,5" Background="#E6E6FA"
+                    Style="{StaticResource Card}">
                 <TextBlock Text="Карточка операции" HorizontalAlignment="Center" FontSize="18"/>
             </Border>
 
             <!-- label1 (Заголовок выбранной операции) -->
-            <Border Grid.Row="1" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,5" Background="#F0F8FF">
+            <Border Grid.Row="1" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,5" Background="#F0F8FF"
+                    CornerRadius="8">
                 <Label x:Name="label1" Content="" Padding="5" FontSize="14" />
             </Border>
 
             <!-- Параметры -->
-            <Border Grid.Row="2" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,5" Background="#E6E6FA">
+            <Border Grid.Row="2" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,5" Background="#E6E6FA"
+                    CornerRadius="8">
                 <TextBlock Text="Параметры:" HorizontalAlignment="Center" Padding="5" FontSize="16"/>
             </Border>
 
@@ -80,14 +214,16 @@
                 </Grid.RowDefinitions>
 
                 <!-- Пустая синяя область -->
-                <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2" Background="#F0F8FF" Margin="0,0,0,10">
+                <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2" Background="#F0F8FF" Margin="0,0,0,10"
+                        CornerRadius="8">
                     <!-- Панель-контейнер -->
                     <StackPanel x:Name="FuncControlsPanel"/>
                 </Border>
 
                 <!-- Кнопка Выполнить -->
-                <Button Grid.Row="1" Content="Выполнить" Click="Run_Click" Width="120" Padding="5" 
-                        HorizontalAlignment="Center" BorderBrush="#3333FF" Background="#E6E6FA"/>
+                <Button Grid.Row="1" Content="Выполнить" Click="Run_Click" Width="120"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource AnimatedButton}"/>
             </Grid>
 
             <!-- Блок Предусловие / Постусловие / Результат -->
@@ -97,7 +233,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="120" />
@@ -105,29 +241,23 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- ПРЕДУСЛОВИЕ -->
-                <!-- Квадратик-индикатор слева -->
                 <Border Grid.Row="0" Grid.Column="0" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,5,2" Background="White">
                     <Label x:Name="labelPreconditionColor" Width="15" Height="15" Background="Gray" Margin="2"/>
                 </Border>
-                <!-- Текст "Предусловие:" -->
                 <Border Grid.Row="0" Grid.Column="1" BorderBrush="#3333FF" BorderThickness="1" Background="#E6E6FA" Margin="0,0,5,2" Padding="2">
                     <Label Content="Предусловие:" VerticalAlignment="Center"/>
                 </Border>
-                <!-- Значение label4 -->
                 <Border Grid.Row="0" Grid.Column="2" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,2" Padding="2">
                     <Label x:Name="labelPreconditionValue" Content="" VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- ПОСТУСЛОВИЕ -->
-                <!-- Квадратик-индикатор слева -->
                 <Border Grid.Row="1" Grid.Column="0" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,5,2" Background="White">
                     <Label x:Name="labelPostconditionColor" Width="15" Height="15" Background="Gray" Margin="2"/>
                 </Border>
-                <!-- Текст "Постусловие:" -->
                 <Border Grid.Row="1" Grid.Column="1" BorderBrush="#3333FF" BorderThickness="1" Background="#E6E6FA" Margin="0,0,5,2" Padding="2">
                     <Label Content="Постусловие:" VerticalAlignment="Center"/>
                 </Border>
-                <!-- Значение label4 -->
                 <Border Grid.Row="1" Grid.Column="2" BorderBrush="#3333FF" BorderThickness="1" Margin="0,0,0,2" Padding="2">
                     <Label x:Name="labelPostconditionValue" Content="" VerticalAlignment="Center"/>
                 </Border>
@@ -142,8 +272,9 @@
             </Grid>
 
             <!-- Кнопка Контракт -->
-            <Button Grid.Row="5" Content="Контракт" Click="Contract_Click" Width="120" Padding="5" 
-                    HorizontalAlignment="Right" BorderBrush="#3333FF" Background="#E6E6FA" Margin="0,0,0,5"/>
+            <Button Grid.Row="5" Content="Контракт" Click="Contract_Click" Width="120"
+                    HorizontalAlignment="Right" Margin="0,0,0,5"
+                    Style="{StaticResource AnimatedButton}"/>
         </Grid>
     </Grid>
 </Window>

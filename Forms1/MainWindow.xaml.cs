@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System;
+using System.Windows.Media.Animation;
 
 namespace Forms1
 {
@@ -38,6 +40,46 @@ namespace Forms1
             OperationsListBox.Items.Add("Операция 5: Выключение");
 
             newNightlight = new NightlightState(); //Создаём новый объект для новой формы
+        }
+
+        // Плавное появление окна при запуске
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var root = (FrameworkElement)this.Content;
+            root.Opacity = 0;
+            var tr = new TranslateTransform(0, 30);
+            root.RenderTransform = tr;
+
+            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(500));
+            var slide = new DoubleAnimation(30, 0, TimeSpan.FromMilliseconds(500));
+
+            root.BeginAnimation(OpacityProperty, fade);
+            tr.BeginAnimation(TranslateTransform.YProperty, slide);
+        }
+
+        // Плавное появление элемента (сдвиг справа + прозрачность)
+        private void AnimateIn(UIElement el)
+        {
+            el.Opacity = 0;
+            var tr = new TranslateTransform(30, 0);
+            el.RenderTransform = tr;
+
+            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250));
+            var slide = new DoubleAnimation(30, 0, TimeSpan.FromMilliseconds(250));
+
+            el.BeginAnimation(OpacityProperty, fade);
+            tr.BeginAnimation(TranslateTransform.XProperty, slide);
+        }
+
+        // Короткий пульс (мигание) элемента
+        private void Pulse(UIElement el)
+        {
+            var anim = new DoubleAnimation(1, 0.3, TimeSpan.FromMilliseconds(120))
+            {
+                AutoReverse = true,
+                RepeatBehavior = new RepeatBehavior(3)
+            };
+            el.BeginAnimation(OpacityProperty, anim);
         }
 
         // ОСНОВА ДЛЯ ВЫБОРА ОПЕРАЦИИ ИЗ СПИСКА
@@ -105,6 +147,9 @@ namespace Forms1
                         break;
                 }
             }
+
+            AnimateIn(label1);
+            AnimateIn(FuncControlsPanel);
         }
 
         /// <summary>
@@ -358,6 +403,10 @@ namespace Forms1
                 default:
                     break;
             }
+
+            Pulse(labelResult);
+            Pulse(labelPreconditionColor);
+            Pulse(labelPostconditionColor);
         }
 
         /// <summary>
