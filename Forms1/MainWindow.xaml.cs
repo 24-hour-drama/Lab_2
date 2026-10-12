@@ -57,6 +57,18 @@ namespace Forms1
             tr.BeginAnimation(TranslateTransform.YProperty, slide);
         }
 
+        // Переключение вкладок — плавное появление содержимого
+        private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.Source is TabControl tc && tc.SelectedItem is TabItem tab)
+            {
+                if (tab.Content is UIElement content)
+                {
+                    AnimateIn(content);
+                }
+            }
+        }
+
         // Плавное появление элемента (сдвиг справа + прозрачность)
         private void AnimateIn(UIElement el)
         {
