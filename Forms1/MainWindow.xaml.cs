@@ -614,5 +614,17 @@ namespace Forms1
                             MessageBoxButton.OK,
                             MessageBoxImage.Warning);
         }
+
+        // Обработчик кнопки «Рассчитать wp» — наполним на этапе 5
+        private void CalcWp_Click(object sender, RoutedEventArgs e)
+        {
+            // вызвать wp-движок и вывести трейс
+        }
+
+        // Обработчик кнопки «Показать триаду» — наполним на этапе 7
+        private void ShowTriad_Click(object sender, RoutedEventArgs e)
+        {
+            // показать {Pre} P {Post}
+        }
     }
 }

@@ -160,7 +160,7 @@
                                 <Setter TargetName="b" Property="Background" Value="#E6E6FA"/>
                             </Trigger>
 
-                            <!-- Активная вкладка — сиреневая -->
+                            <!-- Активная вкладка -->
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="b" Property="Background" Value="#E6E6FA"/>
                                 <Setter TargetName="b" Property="Effect">
@@ -366,12 +366,108 @@
             <!-- ============== ВКЛАДКА 2: КОНСТРУКТОР ФРАГМЕНТА ============== -->
             <TabItem Header="Конструктор фрагмента">
                 <Grid Margin="6">
-                    <TextBlock Text="Скоро..."
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Foreground="Gray"
-                               FontStyle="Italic"
-                               FontSize="16"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Заголовок -->
+                    <Border Grid.Row="0" BorderBrush="#3333FF" BorderThickness="2"
+                            Padding="5" Margin="0,0,0,10" Background="#E6E6FA"
+                            Style="{StaticResource Card}">
+                        <TextBlock Text="Конструктор фрагмента" HorizontalAlignment="Center"
+                                   FontSize="22" FontWeight="Bold"/>
+                    </Border>
+
+                    <!-- Цель (Post) -->
+                    <Border Grid.Row="1" BorderBrush="#3333FF" BorderThickness="1"
+                            Padding="6" Margin="0,0,0,8" Background="#F0F8FF"
+                            Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Цель (Post):" FontSize="14" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtPost" Height="50"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     BorderBrush="#3333FF" Background="White"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Код фрагмента -->
+                    <Border Grid.Row="2" BorderBrush="#3333FF" BorderThickness="1"
+                            Padding="6" Margin="0,0,0,8" Background="#F0F8FF"
+                            Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Код фрагмента:" FontSize="14" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtCode" Height="140"
+                                     AcceptsReturn="True" TextWrapping="NoWrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas"
+                                     BorderBrush="#3333FF" Background="White"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Кнопки + пресеты -->
+                    <Grid Grid.Row="3" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox x:Name="cmbPresets" Grid.Column="0"
+                                  Height="32" VerticalAlignment="Center"
+                                  Margin="0,0,8,0"
+                                  BorderBrush="#3333FF">
+                            <ComboBoxItem Content="— выбрать пресет —" IsSelected="True"/>
+                        </ComboBox>
+
+                        <Button x:Name="btnCalc" Grid.Column="1" Content="Рассчитать wp"
+                                Click="CalcWp_Click" Margin="0,0,8,0"
+                                Style="{StaticResource AnimatedButton}"/>
+
+                        <Button x:Name="btnTriad" Grid.Column="2" Content="Показать триаду"
+                                Click="ShowTriad_Click"
+                                Style="{StaticResource AnimatedButton}"/>
+                    </Grid>
+
+                    <!-- Трейс -->
+                    <Border Grid.Row="4" BorderBrush="#3333FF" BorderThickness="1"
+                            Margin="0,0,0,8" Background="#F0F8FF"
+                            Style="{StaticResource Card}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                            <StackPanel x:Name="pnlTrace">
+                                <TextBlock Text="Здесь появится пошаговый трейс..."
+                                           Foreground="Gray" FontStyle="Italic"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Итоговое wp -->
+                    <Border Grid.Row="5" BorderBrush="#3333FF" BorderThickness="2"
+                            Padding="6" Background="#E6E6FA"
+                            Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Итоговое предусловие (wp):" FontSize="14" FontWeight="Bold"/>
+                            <Label x:Name="lblWpResult" Content="—" FontSize="14" Padding="4"
+                                FontFamily="Consolas"/>
+
+                            <TextBlock Text="Человеческим языком:" FontSize="14" FontWeight="Bold"
+                                Margin="0,4,0,0"/>
+                            <TextBlock x:Name="lblWpHuman" Text="—" FontSize="14" Margin="4,2,4,2"
+                                TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Условия определённости:" FontSize="14" FontWeight="Bold"
+                                Margin="0,4,0,0"/>
+                            <TextBlock x:Name="lblDefinedness" Text="—" FontSize="14" Margin="4,2,4,2"
+                                TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </TabItem>
 
