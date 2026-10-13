@@ -29,6 +29,8 @@ namespace Forms1
         List<string> colors = new List<string> { "Warm white", "Cold white", "White" };
         string pre_txt = "";
         string post_txt = "";
+
+        private string currentHoareTriple = "";
         public MainWindow()
         {
             InitializeComponent();
@@ -40,6 +42,14 @@ namespace Forms1
             OperationsListBox.Items.Add("Операция 5: Выключение");
 
             newNightlight = new NightlightState(); //Создаём новый объект для новой формы
+
+            if (cmbPresets != null)
+            {
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "1. Max из двух", Tag = "Max" });
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "2. Последовательность присваиваний", Tag = "Sequence" });
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "3. Квадратное уравнение", Tag = "Quadratic" });
+                cmbPresets.SelectedIndex = 0;
+            }
         }
 
         // Плавное появление окна при запуске
@@ -94,6 +104,8 @@ namespace Forms1
             el.BeginAnimation(OpacityProperty, anim);
         }
 
+        #region
+        // -----------------НОЧНИК-----------------
         // ОСНОВА ДЛЯ ВЫБОРА ОПЕРАЦИИ ИЗ СПИСКА
         private void OperationsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -615,16 +627,46 @@ namespace Forms1
                             MessageBoxImage.Warning);
         }
 
-        // Обработчик кнопки «Рассчитать wp» — наполним на этапе 5
+
+        #endregion fff
+
+        #region
+        // -----------------КОНСТРУКТОР ФРАГМЕНТА-----------------
+
+        // Обработчик кнопки «Рассчитать wp»
         private void CalcWp_Click(object sender, RoutedEventArgs e)
         {
-            // вызвать wp-движок и вывести трейс
+            if (cmbPresets.SelectedItem is ComboBoxItem item && item.Tag is string tag && tag != "None")
+            {
+                lblWpResult.Content = "-";
+                lblWpHuman.Text = "-";
+                lblDefinedness.Text = "-";
+                currentHoareTriple = "";
+
+                switch (tag)
+                {
+                    case "Max":
+                        txtCode.Text = "if (x1 >= x2) { max = x1 } else { max = x2 }";
+                        txtPost.Text = "max > 100";
+                        break;
+                    case "Sequence":
+                        txtCode.Text = "x = x + 10; y = x + 1";
+                        txtPost.Text = "(y == x - 9) && (x > 15)";
+                        break;
+                    case "Quadratic":
+                        txtCode.Text = "if (D >= 0) { root = (-b + sqrt(D)) / (2 * a) } else { root = -1 }";
+                        txtPost.Text = "(D >= 0 && a * root * root + b * root + c == 0) || (D < 0 && root == -1)";
+                        break;
+                }
+            }
         }
 
-        // Обработчик кнопки «Показать триаду» — наполним на этапе 7
+        // Обработчик кнопки «Показать триаду»
         private void ShowTriad_Click(object sender, RoutedEventArgs e)
         {
             // показать {Pre} P {Post}
         }
+
+        #endregion
     }
 }
