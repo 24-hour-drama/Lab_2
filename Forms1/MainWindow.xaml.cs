@@ -727,7 +727,8 @@ namespace Forms1
         // Обработчик кнопки «Показать триаду»
         private void ShowTriad_Click(object sender, RoutedEventArgs e)
         {
-            // показать {Pre} P {Post}
+            if (!string.IsNullOrEmpty(currentHoareTriple)) MessageBox.Show(currentHoareTriple, "Триада Хоара {Pre} P {Post}", MessageBoxButton.OK, MessageBoxImage.Information);
+            else MessageBox.Show("Сначала нажмите кнопку «Рассчитать wp»", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private Expressions ParseExpression(string input)
