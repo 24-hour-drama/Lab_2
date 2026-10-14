@@ -348,6 +348,7 @@ namespace Library.Lab2
                 "-" => "минус",
                 "abs" => "модуль от",
                 "!" => "не",
+                "sqrt" => "корень из",
                 _ => Operator
             };
             return $"({opHuman} {Operand.ToHumanString()})";
@@ -369,6 +370,7 @@ namespace Library.Lab2
             {
                 "-" => -operandValue,
                 "abs" => Math.Abs(operandValue),
+                "sqrt" => Math.Sqrt(operandValue),
                 _ => throw new Exception($"Неподдерживаемый унарный оператор '{Operator}'."),
             };
         }

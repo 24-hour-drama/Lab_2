@@ -1,5 +1,8 @@
 ﻿using Library;
+using Library.Lab2;
+using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -7,11 +10,10 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System;
-using System.Windows.Media.Animation;
 
 namespace Forms1
 {
@@ -633,11 +635,12 @@ namespace Forms1
         #region
         // -----------------КОНСТРУКТОР ФРАГМЕНТА-----------------
 
-        // Обработчик кнопки «Рассчитать wp»
-        private void CalcWp_Click(object sender, RoutedEventArgs e)
+        // Выбор пресета из списка
+        private void CmbPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (cmbPresets.SelectedItem is ComboBoxItem item && item.Tag is string tag && tag != "None")
             {
+                pnlTrace.Children.Clear();
                 lblWpResult.Content = "-";
                 lblWpHuman.Text = "-";
                 lblDefinedness.Text = "-";
@@ -661,12 +664,129 @@ namespace Forms1
             }
         }
 
+        // Обработчик кнопки «Рассчитать wp»
+
+        private void CalcWp_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
         // Обработчик кнопки «Показать триаду»
         private void ShowTriad_Click(object sender, RoutedEventArgs e)
         {
             // показать {Pre} P {Post}
         }
 
+        private Expressions ParseExpression(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) throw new Exception("Пустое выражение");
+            var tokens = Tokenize(input);
+            int pos = 0;
+            return ParseOr(tokens, ref pos);
+        }
+
+        private List<string> Tokenize(string input)
+        {
+            var pattern = @"(\d+\.?\d*|[a-zA-Z_]\w*|>=|<=|==|!=|&&|\|\||[+\-*/()!><=]||sqrt\([a-zA-Z_]\w*\))";
+            var matches = Regex.Matches(input, pattern);
+            return matches.Cast<Match>().Select(m => m.Value).Where(v => v.Trim().Length > 0).ToList();
+        }
+
+        private Expressions ParseOr(List<string> t, ref int p) { var left = ParseAnd(t, ref p); while (p < t.Count && t[p] == "||") { p++; left = new BinaryOperation(left, ParseAnd(t, ref p), "||"); } return left; }
+        private Expressions ParseAnd(List<string> t, ref int p) { var left = ParseEquality(t, ref p); while (p < t.Count && t[p] == "&&") { p++; left = new BinaryOperation(left, ParseEquality(t, ref p), "&&"); } return left; }
+        private Expressions ParseEquality(List<string> t, ref int p) { var left = ParseRelational(t, ref p); while (p < t.Count && (t[p] == "==" || t[p] == "!=")) { string op = t[p++]; left = new BinaryOperation(left, ParseRelational(t, ref p), op); } return left; }
+        private Expressions ParseRelational(List<string> t, ref int p) { var left = ParseAdditive(t, ref p); while (p < t.Count && (t[p] == ">" || t[p] == "<" || t[p] == ">=" || t[p] == "<=")) { string op = t[p++]; left = new BinaryOperation(left, ParseAdditive(t, ref p), op); } return left; }
+        private Expressions ParseAdditive(List<string> t, ref int p) { var left = ParseMultiplicative(t, ref p); while (p < t.Count && (t[p] == "+" || t[p] == "-")) { string op = t[p++]; left = new BinaryOperation(left, ParseMultiplicative(t, ref p), op); } return left; }
+        private Expressions ParseMultiplicative(List<string> t, ref int p) { var left = ParseUnary(t, ref p); while (p < t.Count && (t[p] == "*" || t[p] == "/")) { string op = t[p++]; left = new BinaryOperation(left, ParseUnary(t, ref p), op); } return left; }
+
+        private Expressions ParseUnary(List<string> t, ref int p)
+        {
+            if (p < t.Count && (t[p] == "-" || t[p] == "!" || t[p] == "abs" || t[p] == "sqrt"))
+            {
+                string op = t[p++];
+                return new UnaryOperation(ParseUnary(t, ref p), op);
+            }
+            return ParsePrimary(t, ref p);
+        }
+
+        private Expressions ParsePrimary(List<string> t, ref int p)
+        {
+            if (p >= t.Count) throw new Exception("Неожиданный конец выражения");
+            string token = t[p++];
+            if (token == "(") 
+            { var expr = ParseOr(t, ref p); 
+                if (p < t.Count && t[p] == ")")  p++; 
+                return expr; 
+            }
+            if (double.TryParse(token, out double num)) return new Constants(num);
+            return new Variable(token);
+        }
+
+        private Statement ParseStatement(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) throw new Exception("Пустая строка");
+            var statements = new List<Statement>();
+            int i = 0;
+            while (i < input.Length)
+            {
+                while (i < input.Length && char.IsWhiteSpace(input[i])) i++;
+                if (i >= input.Length) break;
+
+                if (input.Substring(i).StartsWith("if"))
+                {
+                    int start = i; int braceCount = 0; bool inIf = false;
+                    while (i < input.Length)
+                    {
+                        if (input[i] == '{') { braceCount++; inIf = true; }
+                        if (input[i] == '}') braceCount--;
+                        i++;
+                        if (inIf && braceCount == 0) break;
+                    }
+                    statements.Add(ParseIfStatement(input.Substring(start, i - start).Trim()));
+                }
+                else
+                {
+                    int start = i;
+                    while (i < input.Length && input[i] != ';') i++;
+                    string stmtStr = input.Substring(start, i - start).Trim();
+                    if (!string.IsNullOrEmpty(stmtStr)) statements.Add(ParseAssignment(stmtStr));
+                    i++;
+                }
+            }
+            return statements.Count == 1 ? statements[0] : new Sequence(statements);
+        }
+        private Statement ParseIfStatement(string input)
+        {
+            var condMatch = Regex.Match(input, @"if\s*\((.*?)\)\s*\{(.*)\}");
+            if (!condMatch.Success) throw new Exception("Ошибка синтаксиса if. Проверьте скобки");
+
+            string condStr = condMatch.Groups[1].Value.Trim();
+            string inner = condMatch.Groups[2].Value.Trim();
+            var condition = ParseExpression(condStr);
+
+            int elseIdx = inner.LastIndexOf("} {");
+            Statement trueStmt, falseStmt;
+
+            if (elseIdx > 0)
+            {
+                trueStmt = ParseStatement(inner.Substring(0, elseIdx).Trim());
+                falseStmt = ParseStatement(inner.Substring(elseIdx + 8).TrimEnd('}', ' ').Trim());
+            }
+            else
+            {
+                trueStmt = ParseStatement(inner.TrimEnd('}', ' ').Trim());
+                falseStmt = new Sequence(new List<Statement>());
+            }
+
+            return new IfStatement(condition, trueStmt is Sequence s1 ? s1.Statements : new List<Statement> { trueStmt }, falseStmt is Sequence s2 ? s2.Statements : new List<Statement> { falseStmt });
+        }
+
+        private Statement ParseAssignment(string input)
+        {
+            var parts = input.Split(new[] { ":=", "=" }, StringSplitOptions.None);
+
+            if (parts.Length != 2) throw new Exception($"Неверный формат присваивания");
+            return new Assignment(parts[0].Trim(), ParseExpression(parts[1].Trim()));
+        }
         #endregion
     }
 }
