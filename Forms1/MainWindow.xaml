@@ -420,11 +420,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox x:Name="cmbPresets" Grid.Column="0"
+                        <ComboBox x:Name="cmbPresets" Grid.Column="0" SelectionChanged="CmbPresets_SelectionChanged"
                                   Height="32" VerticalAlignment="Center"
                                   Margin="0,0,8,0"
                                   BorderBrush="#3333FF">
-                            <ComboBoxItem Content="— выбрать пресет —" IsSelected="True"/>
+                            <ComboBoxItem Content="— выбрать пресет —" Tag="None" IsSelected="True"/>
                         </ComboBox>
 
                         <Button x:Name="btnCalc" Grid.Column="1" Content="Рассчитать wp"

@@ -638,8 +638,11 @@ namespace Forms1
         // Выбор пресета из списка
         private void CmbPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cmbPresets.SelectedItem is ComboBoxItem item && item.Tag is string tag && tag != "None")
+            if (pnlTrace == null || lblWpResult == null || lblWpHuman == null || lblDefinedness == null) return;
+            if (cmbPresets.SelectedItem != null)
             {
+                ComboBoxItem item = (ComboBoxItem)cmbPresets.SelectedItem;
+                string tag = (string)item.Tag;
                 pnlTrace.Children.Clear();
                 lblWpResult.Content = "-";
                 lblWpHuman.Text = "-";
@@ -648,6 +651,10 @@ namespace Forms1
 
                 switch (tag)
                 {
+                    case "None":
+                        txtCode.Text = "";
+                        txtPost.Text = "";
+                        break;
                     case "Max":
                         txtCode.Text = "if (x1 >= x2) { max = x1 } else { max = x2 }";
                         txtPost.Text = "max > 100";
@@ -662,12 +669,59 @@ namespace Forms1
                         break;
                 }
             }
+            
         }
 
         // Обработчик кнопки «Рассчитать wp»
 
         private void CalcWp_Click(object sender, RoutedEventArgs e)
         {
+            pnlTrace.Children.Clear();
+            lblWpResult.Content = "—";
+            lblWpHuman.Text = "—";
+            lblDefinedness.Text = "—";
+            currentHoareTriple = "";
+
+            try
+            {
+                // Парсим текст из интерфейса в объекты
+                Statement program = ParseStatement(txtCode.Text);
+                Expressions postcondition = ParseExpression(txtPost.Text);
+
+                // Запускаем движок
+                Engine engine = new Engine();
+                Engine.Result result = engine.Calculate(program, postcondition);
+
+                // Выводим пошаговый трейс
+                foreach (var step in result.TraceSteps)
+                {
+                    pnlTrace.Children.Add(new TextBlock { Text = step });
+                }
+
+                // Выводим итоги
+                var simplified = result.Final.Simplify();
+                lblWpResult.Content = simplified.ToMathString();
+                lblWpHuman.Text = simplified.ToHumanString();
+
+                // Условия определённости
+                if (result.DefinednessConditions.Count > 0)
+                {
+                    lblDefinedness.Text = string.Join(" И ", result.DefinednessConditions.Select(c => c.ToMathString()));
+                    lblDefinedness.Foreground = Brushes.DarkRed;
+                }
+                else
+                {
+                    lblDefinedness.Text = "Нет дополнительных ограничений (например, деления на ноль).";
+                    lblDefinedness.Foreground = Brushes.Green;
+                }
+
+                // Сохраняем триаду для второй кнопки
+                currentHoareTriple = $"{{{simplified.ToMathString()}}}\n\n{program.ToHumanString()}\n\n{{{txtPost.Text}}}";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка парсинга или расчёта", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // Обработчик кнопки «Показать триаду»
