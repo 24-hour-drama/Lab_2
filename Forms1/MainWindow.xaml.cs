@@ -635,10 +635,16 @@ namespace Forms1
         #region
         // -----------------КОНСТРУКТОР ФРАГМЕНТА-----------------
 
-        // Выбор пресета из списка
+        /// <summary>
+        /// Выбор пресета из списка
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CmbPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Защита от NullReferenceException при инициализации окна
             if (pnlTrace == null || lblWpResult == null || lblWpHuman == null || lblDefinedness == null) return;
+
             if (cmbPresets.SelectedItem != null)
             {
                 ComboBoxItem item = (ComboBoxItem)cmbPresets.SelectedItem;
@@ -672,8 +678,11 @@ namespace Forms1
             
         }
 
-        // Обработчик кнопки «Рассчитать wp»
-
+        /// <summary>
+        /// Обработчик кнопки «Рассчитать wp»
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CalcWp_Click(object sender, RoutedEventArgs e)
         {
             pnlTrace.Children.Clear();
@@ -724,13 +733,23 @@ namespace Forms1
             }
         }
 
-        // Обработчик кнопки «Показать триаду»
+        /// <summary>
+        /// Обработчик кнопки «Показать триаду»
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShowTriad_Click(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(currentHoareTriple)) MessageBox.Show(currentHoareTriple, "Триада Хоара {Pre} P {Post}", MessageBoxButton.OK, MessageBoxImage.Information);
             else MessageBox.Show("Сначала нажмите кнопку «Рассчитать wp»", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
+        /// <summary>
+        /// Точка входа для парсинга логических и арифметических выражений
+        /// </summary>
+        /// <param name="input"> выражение </param>
+        /// <returns></returns>
+        /// <exception cref="Exception"> Пустое выражение </exception>
         private Expressions ParseExpression(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) throw new Exception("Пустое выражение");
@@ -739,12 +758,20 @@ namespace Forms1
             return ParseOr(tokens, ref pos);
         }
 
+        /// <summary>
+        /// Лексический анализ: разбиение строки на токены (числа, переменные, операторы) с помощью регулярных выражений
+        /// </summary>
+        /// <param name="input"> выражение </param>
+        /// <returns></returns>
         private List<string> Tokenize(string input)
         {
+            // Паттерн ищет: числа, идентификаторы, составные операторы (>=, && и т.д.), одиночные символы
             var pattern = @"(\d+\.?\d*|[a-zA-Z_]\w*|>=|<=|==|!=|&&|\|\||[+\-*/()!><=]||sqrt\([a-zA-Z_]\w*\))";
             var matches = Regex.Matches(input, pattern);
             return matches.Cast<Match>().Select(m => m.Value).Where(v => v.Trim().Length > 0).ToList();
         }
+
+        // Методы синтаксического анализа выражений (в порядке убывания приоритета)
 
         private Expressions ParseOr(List<string> t, ref int p) { var left = ParseAnd(t, ref p); while (p < t.Count && t[p] == "||") { p++; left = new BinaryOperation(left, ParseAnd(t, ref p), "||"); } return left; }
         private Expressions ParseAnd(List<string> t, ref int p) { var left = ParseEquality(t, ref p); while (p < t.Count && t[p] == "&&") { p++; left = new BinaryOperation(left, ParseEquality(t, ref p), "&&"); } return left; }
@@ -766,16 +793,31 @@ namespace Forms1
         private Expressions ParsePrimary(List<string> t, ref int p)
         {
             if (p >= t.Count) throw new Exception("Неожиданный конец выражения");
+
             string token = t[p++];
+
+            // Рекурсивный вызов для выражений в скобках (сброс приоритета)
             if (token == "(") 
             { var expr = ParseOr(t, ref p); 
                 if (p < t.Count && t[p] == ")")  p++; 
                 return expr; 
             }
+
+            // Если токен является числом
             if (double.TryParse(token, out double num)) return new Constants(num);
+
+            // Иначе считаем токен именем переменной
             return new Variable(token);
         }
 
+        // Методы синтаксического анализа операторов (Statements)
+
+        /// <summary>
+        /// Разделяет код на отдельные операторы по символу ';' или распознаёт блок 'if'.
+        /// </summary>
+        /// <param name="input"> выражение </param>
+        /// <returns></returns>
+        /// <exception cref="Exception"> Пустая строка </exception>
         private Statement ParseStatement(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) throw new Exception("Пустая строка");
@@ -783,12 +825,16 @@ namespace Forms1
             int i = 0;
             while (i < input.Length)
             {
+                // Пропуск пробельных символов
                 while (i < input.Length && char.IsWhiteSpace(input[i])) i++;
                 if (i >= input.Length) break;
 
+                // Если оператор начинается с 'if', отдаём парсинг специализированному методу
                 if (input.Substring(i).StartsWith("if"))
                 {
                     int start = i; int braceCount = 0; bool inIf = false;
+
+                    // Ищем парную закрывающую скобку для всего блока if-else
                     while (i < input.Length)
                     {
                         if (input[i] == '{') { braceCount++; inIf = true; }
@@ -800,17 +846,27 @@ namespace Forms1
                 }
                 else
                 {
+                    // Иначе это присваивание, ищем разделитель ';'
                     int start = i;
                     while (i < input.Length && input[i] != ';') i++;
                     string stmtStr = input.Substring(start, i - start).Trim();
                     if (!string.IsNullOrEmpty(stmtStr)) statements.Add(ParseAssignment(stmtStr));
-                    i++;
+                    i++; // Пропускаем символ ';'
                 }
             }
+            // Если оператор один, возвращаем его. Если несколько, оборачиваем в Sequence
             return statements.Count == 1 ? statements[0] : new Sequence(statements);
         }
+
+        /// <summary>
+        /// Парсер условного оператора. Извлекает условие и блоки кода с помощью регулярных выражений
+        /// </summary>
+        /// <param name="input"> выражение </param>
+        /// <returns></returns>
+        /// <exception cref="Exception"> Ошибка синтаксиса </exception>
         private Statement ParseIfStatement(string input)
         {
+            // Извлекаем условие в () и содержимое в {}
             var condMatch = Regex.Match(input, @"if\s*\((.*?)\)\s*\{(.*)\}");
             if (!condMatch.Success) throw new Exception("Ошибка синтаксиса if. Проверьте скобки");
 
@@ -818,23 +874,33 @@ namespace Forms1
             string inner = condMatch.Groups[2].Value.Trim();
             var condition = ParseExpression(condStr);
 
+            // Поиск ветки else (упрощенный поиск по подстроке)
             int elseIdx = inner.LastIndexOf("} {");
             Statement trueStmt, falseStmt;
 
             if (elseIdx > 0)
             {
+                // Разделяем на true и false блоки и рекурсивно парсим их
                 trueStmt = ParseStatement(inner.Substring(0, elseIdx).Trim());
                 falseStmt = ParseStatement(inner.Substring(elseIdx + 8).TrimEnd('}', ' ').Trim());
             }
             else
             {
+                // Если else нет, false-блок остается пустым
                 trueStmt = ParseStatement(inner.TrimEnd('}', ' ').Trim());
                 falseStmt = new Sequence(new List<Statement>());
             }
 
+            // Нормализация: если результат парсинга - Sequence, берем его список, иначе создаем список из одного элемента
             return new IfStatement(condition, trueStmt is Sequence s1 ? s1.Statements : new List<Statement> { trueStmt }, falseStmt is Sequence s2 ? s2.Statements : new List<Statement> { falseStmt });
         }
 
+        /// <summary>
+        /// Парсер оператора присваивания
+        /// </summary>
+        /// <param name="input"> выражение </param>
+        /// <returns></returns>
+        /// <exception cref="Exception"> Неверный формат </exception>
         private Statement ParseAssignment(string input)
         {
             var parts = input.Split(new[] { ":=", "=" }, StringSplitOptions.None);
