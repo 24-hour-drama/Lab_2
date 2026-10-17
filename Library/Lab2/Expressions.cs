@@ -233,7 +233,10 @@ namespace Library.Lab2
             conditions.AddRange(Right.GetDefinednessConditions());
             if (Operator == "/")
                 conditions.Add(new BinaryOperation(Right, new Constants(0), "!="));
+            if (Operator == "sqrt")
+                conditions.Add(new BinaryOperation(Left, new Constants(0), ">="));
             return conditions;
+            
         }
         /// <summary>
         /// Вычисляет численное значение бинарной операции для заданных значений переменных.
