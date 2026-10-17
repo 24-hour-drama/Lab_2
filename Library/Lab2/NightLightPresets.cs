@@ -47,7 +47,7 @@ namespace Library.Lab2
         /// <returns>Кортеж (program, postCondition, description): program — последовательность операторов, вычисляющая D и
         /// присваивающая t_fade; postCondition — логическое выражение, обеспечивающее корректность найденного корня или
         /// значение t_fade = -1 при D < 0; description — поясняющая строка.</returns>
-        public static (Statement, Expressions, string) GetFadeCurve()
+        public static (Statement program, Expressions post, string) GetFadeCurve()
         {
             var bTimesB = new BinaryOperation(new Variable("brightness"), new Variable("brightness"), "*");
             var fourAC = new BinaryOperation(
@@ -108,7 +108,7 @@ namespace Library.Lab2
         /// порогов.</remarks>
         /// <returns>Кортеж (Statement, Expressions, string): программа, выполняющая обмен; постусловие, требующее threshold_old
         /// == B && threshold_new == A; и человекочитаемое сообщение на русском.</returns>
-        public static (Statement, Expressions, string) GetCalibrationSwap()
+        public static (Statement program, Expressions post, string) GetCalibrationSwap()
         {
             var stmt1 = new Assignment("temp", new Variable("threshold_old"));
             var stmt2 = new Assignment("threshold_old", new Variable("threshold_new"));

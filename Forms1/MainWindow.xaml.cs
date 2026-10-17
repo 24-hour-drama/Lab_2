@@ -5,16 +5,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 namespace Forms1
 {
     /// <summary>
@@ -50,6 +42,9 @@ namespace Forms1
                 cmbPresets.Items.Add(new ComboBoxItem { Content = "1. Max из двух", Tag = "Max" });
                 cmbPresets.Items.Add(new ComboBoxItem { Content = "2. Последовательность присваиваний", Tag = "Sequence" });
                 cmbPresets.Items.Add(new ComboBoxItem { Content = "3. Квадратное уравнение", Tag = "Quadratic" });
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "4. Максимум датчиков", Tag = "SensorsMax" });
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "5. Кривая затухания", Tag = "FadeCurve" });
+                cmbPresets.Items.Add(new ComboBoxItem { Content = "6. Обмен порогов", Tag = "CalibrationSwap" });
                 cmbPresets.SelectedIndex = 0;
             }
         }
@@ -673,6 +668,24 @@ namespace Forms1
                         txtCode.Text = "if (D >= 0) { root = (-b + sqrt(D)) / (2 * a) } else { root = -1 }";
                         txtPost.Text = "(D >= 0 && a * root * root + b * root + c == 0) || (D < 0 && root == -1)";
                         break;
+                    case "SensorsMax":
+                        var sensorsData = NightLightPresets.GetSensorsMax();
+                        txtCode.Text = sensorsData.program.ToMathString();
+                        txtPost.Text = sensorsData.post.ToMathString();
+                        break;
+
+                    case "FadeCurve":
+                        var fadeData = NightLightPresets.GetFadeCurve();
+                        txtCode.Text = fadeData.program.ToMathString();
+                        txtPost.Text = fadeData.post.ToMathString();
+                        break;
+
+                    case "CalibrationSwap":
+                        var swapData = NightLightPresets.GetCalibrationSwap();
+                        txtCode.Text = swapData.program.ToMathString();
+                        txtPost.Text = swapData.post.ToMathString();
+                        break;
+
                 }
             }
             
@@ -716,7 +729,7 @@ namespace Forms1
                 if (result.DefinednessConditions.Count > 0)
                 {
                     lblDefinedness.Text = string.Join(" И ", result.DefinednessConditions.Select(c => c.ToMathString()));
-                    lblDefinedness.Foreground = Brushes.DarkRed;
+                    lblDefinedness.Foreground = Brushes.DarkGreen;
                 }
                 else
                 {
