@@ -69,7 +69,7 @@ namespace Library.Lab2
                 case Assignment assignment:
                     // Для присваивания: wp(x := E, Q) = Q[E/x]
                     var substituted = postcondition.Exchange(assignment.VariableName, assignment.Value);
-                    trace.Add($"After assignment {assignment.VariableName} := {assignment.Value.ToMathString()}, wp = {substituted.ToMathString()}");
+                    trace.Add($"После присваивания {assignment.VariableName} := {assignment.Value.ToMathString()}, wp = {substituted.ToMathString()}");
                     return substituted;
 
                 case Sequence sequence:
@@ -94,24 +94,23 @@ namespace Library.Lab2
                     return current;
 
                 case IfStatement ifStmt:
-                    // Для условного оператора: wp(if C then S1 else S2, Q) = (C => wp(S1, Q)) && (!C => wp(S2, Q))
+                    
                     var Then = CalculateRecursive(new Sequence(ifStmt.TrueBlock), postcondition, trace);
                     var Else = CalculateRecursive(new Sequence(ifStmt.FalseBlock), postcondition, trace);
-
                     var condition = ifStmt.Condition;
 
-                    // Формула: (C && wpThen) || (!C && wpElse)
+                    // (C => wpThen) && (!C => wpElse)
                     var notCondition = new UnaryOperation(condition, "!");
-                    var branch1 = new BinaryOperation(condition, Then, "&&");
-                    var branch2 = new BinaryOperation(notCondition, Else, "&&");
-                    var result = new BinaryOperation(branch1, branch2, "||");
+                    var branch1 = new BinaryOperation(notCondition, Then, "||");
+                    var branch2 = new BinaryOperation(condition, Else, "||");
+                    var result = new BinaryOperation(branch1, branch2, "&&");
 
-                    trace.Add($"After if-statement with condition {{{condition.ToMathString()}}}, wp = {{{result.ToMathString()}}}");
+                    trace.Add($"После if-оператора с условием {{{condition.ToMathString()}}}, wp = {{{result.ToMathString()}}}");
                     return result;
 
 
                 default:
-                    throw new NotImplementedException("Unknown statement type");
+                    throw new NotImplementedException("Неподдерживаемый тип оператора");
             }
         }
 
